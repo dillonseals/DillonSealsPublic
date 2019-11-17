@@ -1,0 +1,689 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Chatterer</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <script type ="text/javascript">
+      var socketio = io.connect();
+      socketio.on("message_to_client",function(data) {
+         //Append an HR thematic break and the escaped HTML of the new message
+         document.getElementById("chatlog").appendChild(document.createElement("hr"));
+         document.getElementById("chatlog").appendChild(document.createTextNode(data['message']));
+      });
+
+      // add a new message to the chat
+      function sendMessage(){
+         var msg = document.getElementById("message_input").value;
+         socketio.emit("message_to_server", {message:msg});
+      }
+      </script>
+      <!-- <link rel="stylesheet" type="text/css" href="chat.css" /> -->
+      <style>
+         body {background-color: lightskyblue;}
+         .center {
+            text-align: center;
+         }
+         .roomName {
+            text-align: center;
+            font-size: 30px;
+            font-weight: bold;
+         }.textLink {
+            display: inline-block;
+         }
+         .textLink:hover {
+            cursor: pointer;
+            color: blue;
+         }
+         .text {
+            font-size: 18px;
+         }
+         .userDiv {
+            text-align: right;
+            font-size: 18px;
+         }
+         .button {
+            height: auto;
+            width: auto;
+            border-radius: 10px;
+            background-color: lightblue;
+            font-size: 14px;
+            font-weight: bold;
+         }
+         .button:hover {
+            background-color: lightgrey;
+            cursor: pointer;
+         }
+         .errors {
+            color: red;
+            text-align: center;
+         }
+         .outerDiv {
+            padding-left: 20%;
+            display: flex;
+            
+         }
+         .outerHomeDiv {
+            padding-left: 25%;
+            padding-right: 25%;
+         }
+         .innerDiv {
+            flex: 0 0 50%;
+            padding-left: 10%;
+            padding-right: 10%;
+            border-left-style: solid;
+            border-left-width: 1px;
+            border-left-color: grey;
+            border-right-style: solid;
+            border-right-width: 1px;
+            border-right-color: grey;
+         }
+         .pmlog {
+            flex: 1;
+            padding-left: 5%
+         }
+         .chats {
+            border-bottom-style: solid;
+            border-bottom-width: 1px;
+            border-bottom-color: grey;
+         }
+         .currentRoomUsers {
+            display: inline-block;
+         }
+      </style>
+</head>
+<body>
+   <div class="userDiv" id="currentUser"></div>    <!-- Current User-->
+   <div class="text center" id="header"></div>     <!-- Header -->
+
+   <!-- Home Screen Divs -->
+   <div class="outerHomeDiv" id="outerHomeDiv">
+      <div class="text" id="rooms"></div>    <!-- List of Chatrooms -->
+      <div class="text" id="createRoom"></div>     <!-- Create New Chatroom -->
+      <div class="text" id="createPrivateRoom"></div>    <!-- Create New Private Chatroom -->
+   </div>
+
+   <!-- Chatroom Divs -->
+   <div class="outerDiv" id="chatroom">
+      <div class="innerDiv">
+         <div class="text" id="chatForm"></div>    <!-- New Chat Form -->
+         <div class="text" id="chatlog"></div>     <!-- Chatlog -->
+         <div class="text" id="roomUsers"></div>   <!-- User List -->
+         <div class="text" id="userOptions"></div>      <!-- User Options -->
+         <div class="text" id="pmDiv"></div>       <!-- PM Div -->
+         <div class="text" id="backToHome"></div>  <!-- Return to Home Screen -->
+      </div>
+      <div class="text pmlog" id="pmlog"></div>
+   </div><br>
+
+   <!--Errors -->
+   <div class="text errors" id="errors"></div>
+
+
+<script>
+   // connect to socketio
+   var socketio = io.connect();
+
+   socketio.on("loginResults", function(data) {
+      if (data.success == true) {
+         window.current_user = document.getElementById("getUserText").value;
+         // print username
+         document.getElementById("currentUser").innerHTML = '<p>Current user: ' + window.current_user + 
+         '&nbsp&nbsp<button class="button" id="logoutBtn">Logout</button></p>';
+
+         // button event listener
+         document.getElementById("logoutBtn").addEventListener('click', logout, false);
+
+         // print home screen
+         document.getElementById("errors").innerHTML = '';
+         printHomeScreen();
+      }
+      else {
+         document.getElementById("errors").innerHTML = 'Username Already Taken';
+      }
+   });
+
+   // NOTE - prints room list when user in chatroom
+   socketio.on("printRooms", function(data) {
+      console.log("printRooms");
+         document.getElementById("rooms").innerHTML = "<br>Join a Chatroom:<br>";
+         console.log(data.rooms);
+         for (var room in data.rooms) {
+            console.log("for loop");
+            roomname = String(room);
+            let newNode = document.getElementById("rooms").appendChild(document.createElement("Div"));
+            newNode.className = "textLink";
+            newNode.id = roomname;
+            newNode.innerHTML = '&nbsp&nbsp&nbsp&nbsp' + roomname;
+            document.getElementById(roomname).addEventListener('click', enterRoom, false);
+         }
+      });
+
+   socketio.on("checkJoinRoom", function(data) {
+      console.log('Trying to join room');
+      // Confirming Room Access
+      if (data.room.privacy  == 'public') {
+         window.access = true;
+      }
+      else {
+         let password = window.prompt("\"" + data.roomName + "\" is a private room. Enter the password to join:", "password");
+         if (password == data.room.password) {
+            window.access = true;
+         }
+         else {
+            window.access = false;
+         }
+      }
+
+      if (access) {
+         window.currentRoom = data.roomName;
+         // NOTE - what does this do? no socket.on in server
+         socketio.emit('room', window.currentRoom);
+
+         // Printing Room name and New Chat Form
+         document.getElementById("errors").innerHTML = '';
+         document.getElementById("header").innerHTML = '<h1>Room: ' + data.roomName + '</h1><br>';
+         document.getElementById("chatForm").innerHTML = "<form id='newChatForm'>New Chat: " +
+         '<input type="text" id="message_input"/>' +
+         '&nbsp&nbsp<button class="button" type="submit" id="newChatButton">Submit</button></form><br><br>';
+
+         // Chats Header
+         let chatHeader = document.getElementById("chatForm").appendChild(document.createElement("div"));
+         chatHeader.innerHTML = "<br>Chats:<br><br>";
+         
+         // newNode.innerHTML = "<br>Chats:<br><br>";
+         // chatList.appendChild(newNode, chatList.childNodes[0]);
+         
+         document.getElementById("chatlog").innerHTML = "";
+
+         // Printing all chats recieved from the server
+         for (i = 0; i < data.room.chats.length; i++) {
+            let chatList = document.getElementById("chatlog")
+            let newNode = document.createElement("Div");
+            newNode.className = "chats";
+            newNode.id = "chat" + String(i);
+            newNode.innerHTML = data.room.chats[i] + " - " + data.room.chatSenders[i];
+            chatList.insertBefore(newNode, chatList.childNodes[0]);  // Adds DOM element before instead of after
+         }
+         // Adding <br> tag
+         document.getElementById("chatlog").appendChild(document.createElement("BR"));
+
+         // Printing PM form and Home Button
+         document.getElementById("roomUsers").innerHTML = "<p>Room Users:</p><br>";
+
+         // Printing Current room members
+         for (var username in data.room.members) {
+            if (username != window.current_user) {
+               let newNode = document.getElementById("roomUsers").appendChild(document.createElement("Div"));
+               newNode.className = "textLink";
+               newNode.id = username;
+               newNode.innerHTML = username + '&nbsp&nbsp';
+               document.getElementById(username).addEventListener('click', alertUser, false);
+            }
+         }
+
+
+         document.getElementById("userOptions").innerHTML = "<p>User Options</p><br>";
+         document.getElementById("backToHome").innerHTML = '<br><button class="button" id="returnHome">Home Screen</button><br>';
+
+         // clear home screen divs
+         document.getElementById("rooms").innerHTML = '';
+         document.getElementById("createRoom").innerHTML = '';
+         document.getElementById("createPrivateRoom").innerHTML = '';
+
+         // event listeners
+         document.getElementById("returnHome").addEventListener('click', leaveRoom, false);
+         document.getElementById("returnHome").addEventListener('click', printHomeScreen, false);
+         document.getElementById("newChatForm").addEventListener('submit', addChat, false);
+      }
+      else {
+         document.getElementById("errors").innerHTML = 'Incorrect Password';
+      }
+   });
+
+   socketio.on("appendChat", function(data) {
+      console.log("Inside appendChat");
+      document.getElementById("message_input").value = "";
+      let chatList = document.getElementById("chatlog")
+      let newNode = document.createElement("Div");
+      newNode.className = "chats";
+      newNode.id = "chat" + String(data.chatSender);
+      newNode.innerHTML = data.newChat + " - " + data.chatSender;
+      chatList.insertBefore(newNode, chatList.childNodes[0]);  // Adds DOM element before instead of after
+   });
+
+   socketio.on("updateMembers", function(data) {
+      console.log("updateMembers");
+      document.getElementById("roomUsers").innerHTML = 'Room Users: <br>';
+      for (var username in data.room.members) {
+         if (username != window.current_user) {
+            let newNode = document.getElementById("roomUsers").appendChild(document.createElement("Div"));
+            newNode.className = "textLink";
+            newNode.id = username;
+            newNode.innerHTML = username + '&nbsp&nbsp';
+            document.getElementById(username).addEventListener('click', alertUser, false);
+         }
+      }
+   });
+
+   // redirect user to new room
+   socketio.on("createdRoom", function(data) {
+      console.log("createdRoom");
+      if (data.success) {
+         console.log("success = true");
+         printChatroom(data.roomName);
+      } if (data.success == false) {
+         console.log("success = false");
+         document.getElementById("errors").innerHTML = 'Room Already Exists';
+      }
+      // update list of rooms for other users
+      updateHome();
+   });
+
+   // display pm/kick/ban buttons for room creator
+   socketio.on("getOptions", function(data) {
+      console.log("getOptions");
+      document.getElementById("pmDiv").innerHTML = '';
+      // add pm button
+      let pmBtn = document.getElementById("userOptions").appendChild(document.createElement('div'));
+      pmBtn.className = "optionsBtnDiv";
+      pmBtn.id = "pmBtnDiv";
+      pmBtn.innerHTML = '<button class="button" id="pmBtn">PM</button>';
+      document.getElementById("pmBtn").addEventListener('click', pmUser, false);
+
+      if (data.creator == window.current_user) {
+         // kick button
+         let kickBtn = document.getElementById("userOptions").appendChild(document.createElement('div'));
+         kickBtn.className = "optionsBtnDiv";
+         kickBtn.id = "kickBtnDiv";
+         kickBtn.innerHTML = '<button class="button" id="kickBtn">Kick</button>';
+         document.getElementById("kickBtn").addEventListener('click', getKicked, false);
+
+         // ban button
+         let banBtn = document.getElementById("userOptions").appendChild(document.createElement('div'));
+         banBtn.className = "optionsBtnDiv";
+         banBtn.id = "banBtnDiv";
+         banBtn.innerHTML = '<button class="button" id="banBtn">Ban</button>';
+         document.getElementById("banBtn").addEventListener('click', getBanned, false);
+
+         if (window.userOptions in data.overlords) {
+            let demoteBtn = document.getElementById("userOptions").appendChild(document.createElement('div'));
+            demoteBtn.className = "demoteBtnDiv";
+            demoteBtn.id = "demoteBtnDiv";
+            demoteBtn.innerHTML = '<button class="button" id="demoteBtn">Revoke Overlordship</button>';
+            document.getElementById("demoteBtn").addEventListener('click', revokeOverlord, false);
+         }
+         else if (window.userOptions in data.elders) {
+            let demoteBtn = document.getElementById("userOptions").appendChild(document.createElement('div'));
+            demoteBtn.className = "demoteBtnDiv";
+            demoteBtn.id = "demoteBtnDiv";
+            demoteBtn.innerHTML = '<button class="button" id="demoteBtn">Revoke Eldership</button>';
+            document.getElementById("demoteBtn").addEventListener('click', revokeElder, false);
+            
+            let promoteBtn = document.getElementById("userOptions").appendChild(document.createElement('div'));
+            promoteBtn.className = "promoteBtnDiv";
+            promoteBtn.id = "promoteBtnDiv";
+            promoteBtn.innerHTML = '<button class="button" id="promoteBtn">Dub Overlord</button>';
+            document.getElementById("promoteBtn").addEventListener('click', dubOverlord, false);
+         }
+         else {
+            let promoteBtn = document.getElementById("userOptions").appendChild(document.createElement('div'));
+            promoteBtn.className = "promoteBtnDiv";
+            promoteBtn.id = "promoteBtnDiv";
+            promoteBtn.innerHTML = '<button class="button" id="promoteBtn">Dub Elder</button>';
+            document.getElementById("promoteBtn").addEventListener('click', dubElder, false);
+         }
+      }
+      else if (window.current_user in data.overlords) {
+         if (window.userOptions in data.overlords) {
+         }
+         else if (window.userOptions in data.elders) {
+            // kick button
+            let kickBtn = document.getElementById("userOptions").appendChild(document.createElement('div'));
+            kickBtn.className = "optionsBtnDiv";
+            kickBtn.id = "kickBtnDiv";
+            kickBtn.innerHTML = '<button class="button" id="kickBtn">Kick</button>';
+            document.getElementById("kickBtn").addEventListener('click', getKicked, false);
+            // ban button
+            let banBtn = document.getElementById("userOptions").appendChild(document.createElement('div'));
+            banBtn.className = "optionsBtnDiv";
+            banBtn.id = "banBtnDiv";
+            banBtn.innerHTML = '<button class="button" id="banBtn">Ban</button>';
+            document.getElementById("banBtn").addEventListener('click', getBanned, false);
+
+            let demoteBtn = document.getElementById("userOptions").appendChild(document.createElement('div'));
+            demoteBtn.className = "demoteBtnDiv";
+            demoteBtn.id = "demoteBtnDiv";
+            demoteBtn.innerHTML = '<button class="button" id="demoteBtn">Revoke Eldership</button>';
+            document.getElementById("demoteBtn").addEventListener('click', revokeElder, false);
+         }
+         else if (window.userOptions != data.creator) {
+            // kick button
+            let kickBtn = document.getElementById("userOptions").appendChild(document.createElement('div'));
+            kickBtn.className = "optionsBtnDiv";
+            kickBtn.id = "kickBtnDiv";
+            kickBtn.innerHTML = '<button class="button" id="kickBtn">Kick</button>';
+            document.getElementById("kickBtn").addEventListener('click', getKicked, false);
+            // ban button
+            let banBtn = document.getElementById("userOptions").appendChild(document.createElement('div'));
+            banBtn.className = "optionsBtnDiv";
+            banBtn.id = "banBtnDiv";
+            banBtn.innerHTML = '<button class="button" id="banBtn">Ban</button>';
+            document.getElementById("banBtn").addEventListener('click', getBanned, false);
+
+            let promoteBtn = document.getElementById("userOptions").appendChild(document.createElement('div'));
+            promoteBtn.className = "promoteBtnDiv";
+            promoteBtn.id = "promoteBtnDiv";
+            promoteBtn.innerHTML = '<button class="button" id="promoteBtn">Dub Elder</button>';
+            document.getElementById("promoteBtn").addEventListener('click', dubElder, false);
+         }
+      }
+      else if (window.current_user in data.elders) {
+         if (!(window.userOptions in data.elders) && !(window.userOptions in data.overlords) && window.userOptions != data.creator) {
+            // kick button
+            let kickBtn = document.getElementById("userOptions").appendChild(document.createElement('div'));
+            kickBtn.className = "optionsBtnDiv";
+            kickBtn.id = "kickBtnDiv";
+            kickBtn.innerHTML = '<button class="button" id="kickBtn">Kick</button>';
+            document.getElementById("kickBtn").addEventListener('click', getKicked, false);
+            // ban button
+            let banBtn = document.getElementById("userOptions").appendChild(document.createElement('div'));
+            banBtn.className = "optionsBtnDiv";
+            banBtn.id = "banBtnDiv";
+            banBtn.innerHTML = '<button class="button" id="banBtn">Ban</button>';
+            document.getElementById("banBtn").addEventListener('click', getBanned, false);
+         }
+      }
+   });
+
+   // display pm buttons for normal users
+   socketio.on("getOptionsNormal", function(data) {
+      console.log("getOptionsNormal");
+      // add pm button
+      let pmBtn = document.getElementById("userOptions").appendChild(document.createElement('div'));
+      pmBtn.className = "optionsBtnDiv";
+      pmBtn.id = "pmBtnDiv";
+      pmBtn.innerHTML = '<button class="button" id="pmBtn">PM</button>';
+      document.getElementById("pmBtn").addEventListener('click', pmUser, false);
+   });
+
+   // Printing new PM
+   socketio.on("sendPM", function(data) {
+      console.log("Recieving PM from server from " + data.sender);
+      let pmdiv = document.getElementById("pmlog")
+      let newNode = document.createElement('div');
+      newNode.className = 'chats';
+      newNode.innerHTML = data.message + ' - ' + data.sender;
+      pmdiv.insertBefore(newNode, pmdiv.childNodes[0]);
+   });
+
+   // kick user
+   socketio.on("kickThisUser", function(data) {
+      console.log("kickThisUser");
+      leaveRoom();
+      printHomeScreen();
+      document.getElementById("errors").innerHTML = 'You have been Kicked from \'' + data.room + '\' by: ' + data.initiator;
+   });
+
+   // ban user (kick from chatroom)
+   socketio.on("banThisUser", function(data) {
+      console.log("banThisUser");
+      leaveRoom();
+      printHomeScreen();
+      document.getElementById("errors").innerHTML = 'You have been Banned from \'' + data.room + '\' by: ' + data.initiator;
+   });
+
+   // check if user banned from a room
+   socketio.on("checkIfBanned", function(data) {
+      console.log("checkIfBanned");
+      console.log(data.checkBan);
+      if (data.checkBan) {
+         document.getElementById("errors").innerHTML = '<p>You have been banned from this room. In other words - thou shall not pass</p>';
+      } else {
+         printChatroom(data.room);
+         updateRoom(data.room);
+      }
+   });
+
+   // resetting permissions
+   socketio.on("resetUserOptions", function() {
+      document.getElementById("userOptions").innerHTML = "";
+   })
+
+   // request username on page load
+   const getUser = function() {
+      if (typeof window.current_user == 'undefined') {
+         // print form + button
+         document.getElementById("header").innerHTML = 
+         '<form id="getUserForm">' + '<br><br>What shall I call you?<br><br>' +
+         '<input type="text" placeholder="username" id="getUserText" />&nbsp&nbsp' +
+         '<button class="button" type="submit" id="getUserBtn">Let\'s Chat!</button></form>';
+
+         let newbr = document.createElement("BR");
+         let header = document.getElementById("header");
+         header.insertBefore(newbr, header.childNodes[0]);
+
+         // button event listener
+         document.getElementById("getUserForm").addEventListener('submit', login, false)
+      }
+   }
+
+   // "login" user - fill current user div and call printHomeScreen
+   const login = function(e) {
+      e.preventDefault();
+      username = document.getElementById("getUserText").value;
+      socketio.emit("loginUser", {user: username});
+   }
+
+   // logout and return to login page
+   const logout = function() {
+      leaveRoom();
+
+      // clear home screen divs
+      document.getElementById("rooms").innerHTML = '';
+      document.getElementById("createRoom").innerHTML = '';
+      document.getElementById("createPrivateRoom").innerHTML = '';
+      document.getElementById("currentUser").innerHTML = '';
+      document.getElementById("errors").innerHTML = '';
+
+      socketio.emit("logout", {user: window.current_user});
+      delete window.current_user;
+      // display login screen
+      getUser();
+   }
+
+   // Display Home Screen
+   const printHomeScreen = function() {
+      // Print Header
+      document.getElementById("header").innerHTML = "<h1>Welcome!</h1><br><br><br>"
+
+      // request server for room list
+      socketio.emit("getRooms");
+
+      // Adding <br> tags
+      document.getElementById("rooms").appendChild(document.createElement("BR"));
+      document.getElementById("rooms").appendChild(document.createElement("BR"));
+
+      // Populate new room div
+      document.getElementById("createRoom").innerHTML = '<br><form id="newRoomForm">' +
+      'Create a new Room:<br><input type="text" placeholder="room name" id="newRoomName" />&nbsp&nbsp' +
+      '<button class="button" type="sumbit" id="newRoomBtn">Create</button></form><br>'
+
+      // Populate new private room div
+      document.getElementById("createPrivateRoom").innerHTML = '<br><form id="newPrivateRoomForm">' +
+      'Create New Private Room:<br> <input type="text" placeholder="private room name" id="newPrivateRoomName" />&nbsp&nbsp' +
+      '<input type="password" placeholder="password" id="newPrivateRoomPassword" />&nbsp&nbsp' +
+      '<button class="button" type="submit" id="newPrivateRoomBtn">Create</button></form><br>';
+
+      // Emptying Chatroom Divs
+      document.getElementById("chatlog").innerHTML = '';
+      document.getElementById("chatForm").innerHTML = '';
+
+      // event listeners
+      document.getElementById("newRoomForm").addEventListener('submit', createRoom, false);
+      document.getElementById("newPrivateRoomForm").addEventListener('submit', createPrivateRoom, false);
+      // document.getElementById("enterCurrentRoomBtn").addEventListener('click', enterRoom, false);
+   }
+
+   // Create New Chatroom
+   const createRoom = function(e) {
+      e.preventDefault();
+      // get new room name
+      let roomName = document.getElementById("newRoomName").value;
+
+      // emit roomname, creator, and privacy to server
+      socketio.emit("createRoom", {name:roomName, creator:window.current_user, privacy:'public'});
+
+      //updateHome();
+   }
+
+   // create a new private chatroom
+   const createPrivateRoom = function(e) {
+      e.preventDefault();
+      // get new room name
+      let roomName = document.getElementById("newPrivateRoomName").value;
+      let roomPassword = document.getElementById("newPrivateRoomPassword").value;
+
+      // emit roomname, creator, and privacy to server
+      socketio.emit("createRoom", {name:roomName, creator:window.current_user, privacy:'private', password:roomPassword});
+   }
+
+   // enter existing chatroom
+   const enterRoom = function(e) {
+      console.log("enterRoom");
+      e.preventDefault();
+      // check if user is banned
+      console.log(this.id);
+      socketio.emit("isBanned", {room: this.id, user: window.current_user});
+      //printChatroom(this.id);
+      //updateRoom(this.id);
+   }
+
+   // print chatroom page
+   const printChatroom = function(roomName) {
+      // Request Room info
+      socketio.emit("joinRoom", {room: roomName, username:window.current_user});
+   }
+
+   const addChat = function(e) {
+      e.preventDefault();
+      message = document.getElementById("message_input").value;
+      socketio.emit("newChat", {roomName:window.currentRoom, message:message, sender:window.current_user});
+   }
+
+   // create pm form
+   const pmUser = function(e) {
+      e.preventDefault();
+      document.getElementById("userOptions").innerHTML = "<p>User Options</p><br>";
+      document.getElementById("pmDiv").innerHTML = '<br><form id="newPMForm">' +
+      'Send a private message to ' + window.userOptions + ':<br> <input type="text" placeholder="message" id="newPrivateMessage" />&nbsp&nbsp' +
+      '<button class="button" type="submit" id="newPrivateMessageBtn">Send</button></form><br>';
+      document.getElementById("newPMForm").addEventListener('submit', sendPM, false);
+   }
+
+   // send pm to user
+   const sendPM = function(e) {
+      e.preventDefault();
+      let Message = document.getElementById("newPrivateMessage").value
+      socketio.emit("newPM", {message:Message, sender: window.current_user, recipient: window.userOptions });
+      delete window.userOptions;
+      document.getElementById("pmDiv").innerHTML = '';
+   }
+
+   // Revoke Eldership priveliges
+   const revokeElder = function (e) {
+      e.preventDefault();
+      socketio.emit("Demote", {revoke:'elder', member: window.userOptions, room: window.currentRoom});
+      delete window.userOptions;
+      document.getElementById("userOptions").innerHTML = "<p>User Options</p><br>";
+   }
+
+   // Grant Eldership priveliges
+   const dubElder = function(e) {
+      e.preventDefault();
+      socketio.emit("Promote", {dub:'elder', member: window.userOptions, room: window.currentRoom});
+      delete window.userOptions;
+      document.getElementById("userOptions").innerHTML = "<p>User Options</p><br>";
+   }
+
+   // Revoke Overlordship priveliges
+   const revokeOverlord = function (e) {
+      e.preventDefault();
+      socketio.emit("Demote", {revoke:'overlord', member: window.userOptions, room: window.currentRoom});
+      delete window.userOptions;
+      document.getElementById("userOptions").innerHTML = "<p>User Options</p><br>";
+   }
+
+   // Grant Overlordship priveliges
+   const dubOverlord = function(e) {
+      e.preventDefault();
+      socketio.emit("Promote", {dub:'overlord', member: window.userOptions, room: window.currentRoom});
+      delete window.userOptions;
+      document.getElementById("userOptions").innerHTML = "<p>User Options</p><br>";
+   }
+
+   // kick user from chatroom
+   const getKicked = function() {
+      console.log("getKicked");
+      console.log("kicked user = " + window.userOptions);
+      socketio.emit("kick", {kickedUser: window.userOptions, room: window.currentRoom, initiator: window.current_user});
+      document.getElementById("userOptions").innerHTML = "<p>User Options</p><br>";
+   }
+
+   // ban user from chatroom
+   const getBanned = function() {
+      console.log("getBanned");
+      console.log("banned user = " + window.userOptions);
+      socketio.emit("ban", {bannedUser: window.userOptions, room: window.currentRoom, initiator: window.current_user});
+      document.getElementById("userOptions").innerHTML = "<p>User Options</p><br>";
+   }
+
+   // display pm/kick/ban buttons
+   // NOTE - only works for creator of room
+   const alertUser = function() {
+      window.userOptions = this.id;
+      console.log("alertUser");
+      //DO STUFF HERE WITH PM and BAN/KICK IF ADMIN
+      document.getElementById("userOptions").innerHTML = '<p>Options for ' + this.id + ':</p>';
+      // check if room creator
+      console.log(window.currentRoom);
+      console.log(window.current_user);
+      socketio.emit("userOptions", {room: window.currentRoom, user: window.current_user});
+   }
+
+   // updates users real-time when new user joins
+   const updateRoom = function(roomName) {
+      socketio.emit("userJoined", {room:roomName});
+   }
+
+   // updates homescreen when new room created
+   const updateHome = function() {
+      socketio.emit("updateRoomList", {stuff: "stuff"});
+   }
+
+   // leave room and return to home screen
+   const leaveRoom = function() {
+      console.log("leaveRoom");
+      if (typeof window.currentRoom != 'undefined') {
+         socketio.emit("leaveRoom", {room: window.currentRoom, username:window.current_user});
+
+         // clear room divs
+         document.getElementById("chatForm").innerHTML = '';
+         document.getElementById("chatlog").innerHTML = '';
+         document.getElementById("roomUsers").innerHTML = '';
+         document.getElementById("userOptions").innerHTML = '';
+         document.getElementById("backToHome").innerHTML = '';
+         document.getElementById("pmlog").innerHTML = '';
+         document.getElementById("pmDiv").innerHTML = '';
+
+         delete window.currentRoom;
+      }
+   }
+   
+   // pageload event listeners
+   document.addEventListener("DOMContentLoaded", getUser, false);
+   
+</script>
+</body>
+</html>

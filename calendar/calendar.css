@@ -1,0 +1,106 @@
+body {background-color: lightskyblue;}
+.calendar-container {
+    width: 80%;
+    height: 80%;
+    margin: auto;
+    border-style: solid;
+    border-right-style: none;
+    border-bottom-style: none;
+    background-color: blanchedalmond;
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    grid-template-rows: repeat(12, 1fr);
+    min-width: 600px;
+    min-height: 400px;
+}
+.calendarDivider {
+    border-right-style: solid;
+    border-bottom-style: solid;
+    overflow-y: auto;
+}
+/* https://stackoverflow.com/questions/16670931/hide-scroll-bar-but-while-still-being-able-to-scroll */
+.calendarDivider::-webkit-scrollbar {
+    width: 0px;  /* Remove scrollbar space */
+    background: transparent;  /* Optional: just make scrollbar invisible */
+}
+.UserDiv {
+    width: 100%;
+}
+.align_right {
+    float: right;
+}
+.inline {
+    display: inline;
+}
+.col1 {
+    grid-column: 1;
+}
+.col2 {
+    grid-column: 2;
+}
+.col3 {
+    grid-column: 3;
+}
+.col4 {
+    grid-column: 4;
+}
+.col5 {
+    grid-column: 5;
+}
+.col6 {
+    grid-column: 6;
+}
+.col7 {
+    grid-column: 7;
+}
+.titleRow {
+    grid-row: 1;
+    grid-column: 1 / 8;
+    display: flex;
+    justify-content: center;
+    align-items: center; 
+}
+.dayOfWeek {
+    grid-row: 2;
+    font-weight: bold;
+    text-align: center;
+    overflow: visible;
+}
+.week1 {
+    grid-row: 3 / 5;
+}
+.week2 {
+    grid-row: 5 / 7;
+}
+.week3 {
+    grid-row: 7 / 9;
+}
+.week4 {
+    grid-row: 9 / 11;
+}
+.week5 {
+    grid-row: 11 / 13;
+}
+.hover:hover {
+    background-color: lightgrey;
+    cursor: pointer;
+}
+.eventDiv:hover {
+    cursor: pointer;
+    color: blue;
+}
+.newEventsDiv {
+    white-space:nowrap;
+    text-align:center;
+}
+.error {
+    color: red;
+}
+.button {
+    height: auto;
+    width: auto;
+    border-radius: 10px;
+    background-color: lightblue;
+    font-size: 14px;
+    font-weight: bold;
+}

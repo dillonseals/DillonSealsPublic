@@ -1,0 +1,70 @@
+insert into scribbler_stories
+	(title, text, user_id)
+	values  ('I Am the Second Title', 'To text or not to text, that is the question.', 'user1'),
+	('Title, the Third, at Your Service', 'There is no greater calling than to be an example text for a 330 assignment', 'user1');
+
+
+insert into scribbler_users
+	(username, password)
+	values ('user1', 'pass1');
+
+insert into scribbler_users
+	(username, password)
+	values ('user2', 'pass2');
+
+
+insert into scribbler_stories
+	(title, text, user_id)
+	values ('I Am a Title, Hear Me Roar', 'I am text, texty texty text.', 1),
+	('I Am the Second Title', 'To text or not to text, that is the question.', 1),
+	('Title, the Third, at Your Service', 'There is no greater calling than to be an example text for a 330 assignment', 1);
+
+
+insert into scribbler_comments
+	(text, user_id, story_id)
+	values ('I am a bold and insightful comment.', 1, 4),
+	('Wow, so insightful', 2, 4),
+	('First', 2, 6);
+
+
+NOT USED
+select title, text
+	from scribbler_stories
+	join scribbler_users on
+		(scribbler_stories.user_id = scribbler_users.user_id)
+	where story_id = 4;
+
+
+select scribbler_comments.text, scribbler_users.username
+	from scribbler_comments
+	join scribbler_users on
+		(scribbler_comments.user_id=scribbler_users.user_id)
+	where story_id = ?
+
+
+alter table scribbler_stories add link varchar(200);
+
+
+update scribbler_stories set link="https://upload.wikimedia.org/wikipedia/commons/4/4e/Bernhardt_Hamlet2.jpg" where story_id = 5;
+
+
+select user_id from scribbler_users
+	where username = ...
+
+
+insert into scribbler_stories
+	(title, text, link, user_id)
+	values (?, ?, ?, ?)
+
+alter table scribbler_stories add viewcount smallint unsigned NOT NULL DEFAULT 0;
+
+
+
+
+
+
+
+
+
+
+

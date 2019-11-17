@@ -1,0 +1,23 @@
+body {background-color: lightskyblue;}
+.roomDiv {
+width: 30px;
+}
+.roomDiv:hover {
+cursor: pointer;
+color: blue;
+}
+.button {
+height: auto;
+width: auto;
+border-radius: 10px;
+background-color: lightblue;
+font-size: 14px;
+font-weight: bold;
+}
+.button:hover {
+background-color: lightgrey;
+cursor: pointer;
+}
+.errors {
+color: red;
+}
