@@ -1,9 +1,4 @@
-# CSE330
-441484
-
-474381
-
-Creative Portion
+TODO:
 
 Calendar Sharing
     - users can share their calendar events with another user
@@ -18,3 +13,7 @@ Group Events
     - users can create events for groups
         - users select "create group event" from homepage
         - input fields as normal, plus the group ID number
+        
+        
+Bugs
+ - created events don't display on calendar on creation, but do on page refresh
