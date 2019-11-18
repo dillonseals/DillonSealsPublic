@@ -1,11 +1,4 @@
-# CSE330
-441484
-
-474381
-
-
-
-Creative Portion
+# Chatterer
 
 We have created a hierarchy for each room:
 
