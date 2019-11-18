@@ -1,5 +1,7 @@
 # Chatterer
 
+Link - http://ec2-18-222-177-5.us-east-2.compute.amazonaws.com:3456/chatClient.html
+
 We have created a hierarchy for each room:
 
   -  The Creator of a chatroon can dub other users as Overlords (admins) and Elders (mods). 
