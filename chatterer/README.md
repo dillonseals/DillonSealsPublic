@@ -1,11 +1,6 @@
-# CSE330
-441484
+# Chatterer
 
-474381
-
-
-
-Creative Portion
+Link - http://ec2-18-222-177-5.us-east-2.compute.amazonaws.com:3456/chatClient.html
 
 We have created a hierarchy for each room:
 

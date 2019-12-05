@@ -1,9 +1,8 @@
-# CSE330
-441484
+# Calendar
 
-474381
+Link - http://ec2-18-222-177-5.us-east-2.compute.amazonaws.com/~dillonrayseals/calendar/calendar.php
 
-Creative Portion
+TODO:
 
 Calendar Sharing
     - users can share their calendar events with another user
@@ -18,3 +17,7 @@ Group Events
     - users can create events for groups
         - users select "create group event" from homepage
         - input fields as normal, plus the group ID number
+        
+        
+Bugs
+ - created events don't display on calendar on creation, but do on page refresh

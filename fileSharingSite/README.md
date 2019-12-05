@@ -1,13 +1,8 @@
-# sharedSite
-repo for file sharing site assignment, m2
+# File Sharing Site
 
-441484 - Dillon Seals
-474381 - Jeremiah Brannon
+Link - http://ec2-18-222-177-5.us-east-2.compute.amazonaws.com/~dillonrayseals/homeScreen.php
 
-Link to website (Dillon)
-http://ec2-18-222-177-5.us-east-2.compute.amazonaws.com/~dillonrayseals/homeScreen.php
-
-Creative Portion (Dillon) - Create new "account" functionality
+Create new "account" functionality
     -   Users can input a new username they would like to create on the home page
     -   Posts input to newUser.php
     -   Checks if input in users.txt
