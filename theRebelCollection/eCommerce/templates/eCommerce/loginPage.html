@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Login</title>
+</head>
+<body>
+        <!-- Login -->
+        <form action="{% url 'eCommerce:redirectPage' %}" method='POST'>
+                {% csrf_token %}
+                <p>Login</p>
+                <input type='hidden' name='login' value='login' />
+                Username<br>
+                <input type='text' placeholder='username' name='username' /><br>
+                Password<br>
+                <input type='password' placeholder='password' name='password' /><br>
+                <input type='submit' value='login' />
+            </form><br><br>
+
+        <!-- Logout -->
+        <form action="{% url 'eCommerce:redirectPage' %}" method='POST'>
+            {% csrf_token %}
+            <p>Register a New User</p>
+            <input type='hidden' name='register' value='register' />
+            Username<br>
+            <input type='text' placeholder='username' name='username' /><br>
+            Password<br>
+            <input type='password' placeholder='password' name='password' /><br>
+            <input type='submit' value='register' />
+        </form><br>
+
+        <!-- Home -->
+        <form action="{% url 'eCommerce:index' %}" method='POST'>
+            {% csrf_token %}
+            <input type='submit' value='Return to Home Page' />
+        </form>
+</body>
+</html>

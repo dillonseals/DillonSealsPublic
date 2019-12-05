@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>{{ product.name }}</title>
+</head>
+<body>
+    <!-- Home -->
+    <form action="{% url 'eCommerce:index' %}" method='POST'>
+        {% csrf_token %}
+        <input type='submit' value='Return to Home Page' />
+    </form>
+    <!-- Product Info -->
+    <div>
+        <p>Designer - {{ product.designer }}</p>
+        <p>Name - {{ product.name }}</p>
+        <p>Price - ${{ product.price }}</p>
+        <p>Average Rating - {{ product.score }}</p>
+    </div><br>
+
+    <!-- Leave a Review -->
+    <!-- NOTE - user can leave multiple reviews -->
+    {% if user %}
+    <div>
+        <form method='POST' action="{% url 'eCommerce:redirectPage' %}">
+            {% csrf_token %}
+            Leave a Review:
+            <select name='rating'>
+                <option value='1'>1</option>
+                <option value='2'>2</option>
+                <option value='3'>3</option>
+                <option value='4'>4</option>
+                <option value='5'>5</option>
+            </select><br>
+            <input type='textarea' rows='8' cols='8' name='reviewText' placeholder='Leave your review here...' />
+            <input type='hidden' name='productName' value="{{ product.name }}" />
+            <input type='hidden' name='review' value='review' />
+            <input type='submit' value='review' />
+        </form>
+    </div><br>
+    {% endif %}
+
+    <!-- List of Reviews -->
+    <p>What Others Are Saying</p>
+    {% for rev in reviews %}
+        <div>
+            <p>{{ rev.reviewer }} - {{ rev.number }}/5 stars</p>
+            <p>{{ rev.text }}</p>
+        </div><br>
+    {% endfor %}
+</body>
+</html>

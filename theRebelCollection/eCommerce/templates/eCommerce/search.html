@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>{{ product.name }}</title>
+</head>
+<body>
+  <h1>Search Results</h1>
+    <!-- Product Info -->
+    {% for product in productList %}
+    <div>
+      <p>Image - {{ product.image }}</p>
+      <p>Name - {{ product.name }}</p>
+      <p>Designer - {{ product.designer }}</p>
+      <p>Price - ${{ product.price }}</p>
+      <p>Color - {{ product.color }}</p>
+    </div><br><br>
+
+    {% endfor %}
+<!-- <p>{{ user.username }}</p> -->
+<!-- Home -->
+<form action="{% url 'eCommerce:index' %}" method='POST'>
+        {% csrf_token %}
+        <input type='submit' value='Return to Home Page' />
+    </form>
+</body>
+</html>

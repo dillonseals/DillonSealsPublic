@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>The Rebel Collection</title>
+</head>
+<body>
+    <div>
+        <p>User - {{ user }}</p>
+    </div>
+    <!-- Login/Logout Button -->
+    {% if user != 'Guest' %}
+        <form action="{% url 'eCommerce:loginPage' %}" method='POST'>
+            {% csrf_token %}
+            <input type='hidden' value='logout' name='logout' />
+            <input type='submit' value='logout' />
+        </form><br>
+    
+    {% else %}
+        <form action="{% url 'eCommerce:loginPage' %}" method='POST'>
+            {% csrf_token %}
+            <input type='hidden' value='login' name='login' />
+            <input type='submit' value='login' />
+        </form><br>
+    {% endif %}
+  <!--   <div>
+            <form action="{% url 'eCommerce:cartPage' %}" method='POST'>
+                    {% csrf_token %}
+                    <input type='hidden' name='cart' value="cart" />
+                    <input type='submit' value='Cart' />
+                </form>
+                <form action="{% url 'eCommerce:wishPage' %}" method='POST'>
+                        {% csrf_token %}
+                        <input type='hidden' name='wish' value="wish" />
+                        <input type='submit' value='Wish List' />
+                    </form> -->
+            
+
+        {% for product in productList %}
+        <div>
+            <p>Image - {{ product.image }}</p>
+            <p>Name - {{ product.name }}</p>
+            <p>Designer - {{ product.designer }}</p>
+            <p>Price - ${{ product.price }}</p>
+        </div>
+        <div>
+            <form action="{% url 'eCommerce:productPage' %}" method='POST'>
+                {% csrf_token %}
+                <input type='hidden' name='productID' value="{{ product.id }}" />
+                <input type='submit' name='submit' value='More Details' />
+            </form>
+            <form action="{% url 'eCommerce:cartPage' %}" method='POST'>
+                {% csrf_token %}
+                <input type='hidden' name='cart' value="{{ product.name }}" />
+                <input type='submit' value='Add to Cart' />
+            </form>
+             <form action="{% url 'eCommerce:wishPage' %}" method='POST'>
+                {% csrf_token %}
+                <input type='hidden' name='wish' value="{{ product.name }}" />
+                <input type='submit' value='Add to Wish List' />
+            </form>
+         </div><br>
+    {% endfor %}
+    <div>
+        <form method='POST' action="{% url 'eCommerce:searchPage' %}">
+            {% csrf_token %}
+            Search Products:
+            <select name='color'>
+                <option value='u'>Blue</option>
+                <option value='r'>Red</option>
+                <option value='y'>Yellow</option>
+                <option value='p'>Purple</option>
+                <option value='o'>Orange</option>
+                <option value='g'>Green</option>
+                <option value='n'>Brown</option>
+                <option value='w'>White</option>
+                <option value='b'>Black</option>
+                <option value='s'>Silver</option>
+            </select>
+            <input type='submit' value='search' />
+        </form>
+    </div>
+</body>
+</html>
